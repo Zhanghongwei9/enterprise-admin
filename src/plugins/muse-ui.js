@@ -48,10 +48,31 @@ import {
 import 'muse-ui/lib/styles/theme.less';
 import 'muse-ui-loading/dist/muse-ui-loading.css';
 import Loading from 'muse-ui-loading';
+import Toast from 'muse-ui-toast';
+import 'muse-ui-message/dist/muse-ui-message.css';
+import Message from 'muse-ui-message';
+
+Vue.use(Message,
+{
+  successIcon: '',             
+  infoIcon: '',  
+  warningIcon: '',  
+  errorIcon: '' 
+})
+
+Vue.use(Toast, {
+  position: 'top-end',
+  time: 2000,
+  close: false,
+  successIcon: '',
+  infoIcon: '',
+  warningIcon: '',
+  errorIcon: ''
+});
 
 Vue.use(Loading, {      
   size: 100,
-  color: '#CD2527'
+  color: '#ffda21'
 })
 Vue.use(Alert);
 Vue.use(AppBar);

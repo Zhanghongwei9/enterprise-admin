@@ -5,42 +5,112 @@
                 <input type="input" placeholder="输入关键字查询...">
                 <a href="javascript:void(0);" class="search"></a>
             </div>
-            <table class="list">
-                <tr>
-                    <td class="title">Let's play 玩在一起</td>
-                    <td>2019-04-06</td>
+             <table class="list">
+                <tr v-for="item in infos" :key="item.id">
+                    <td class="title">{{item.title}}</td>
+                    <td>{{item.gmtCreate}}</td>
                     <td>
-                        <a href="javascript:void(0);">选择</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="title">我们的超值低价</td>
-                    <td>2019-04-06</td>
-                    <td>
-                        <a href="javascript:void(0);">选择</a>
+                        <mu-checkbox v-model="item.checked"></mu-checkbox>
                     </td>
                 </tr>
             </table>
+            <infinite-loading @infinite="getInfoList" :distance="30" spinner="waveDots" ref="infiniteLoading">
+                <div slot="no-more">无更多内容</div>
+                <div slot="no-results">已加载完成</div>
+            </infinite-loading>
+        </div>
+        <div class="bottom-wapper">
+            <a href="javascript:void(0);" class="save" @click="save">确认选择</a>
         </div>
     </mu-dialog>
 </template>
 
 <script>
+    import InfiniteLoading from 'vue-infinite-loading' 
+    import _article from '@/service/article-service'
     export default {
+        components: {
+            InfiniteLoading
+        },
         data() {
-                return {
-                    openSimple: false
-                }
+            return {
+                openSimple: false,
+                query: {
+                    title: null,
+                    pageIndex: 0,
+                    pageSize: 20
+                },
+                infos: [],
+                checkedInfos: null
+            }
         },
         methods: {
-            show () {
+            show (checkedInfos) {
+                this.checkedInfos = checkedInfos
                 this.openSimple = true
+                this.reset()
+            },
+            save () {
+                let _loading = this.$loading({ fullscreen: true })
+                var checkedInfos = []
+                for (const item of this.infos) {
+                    if (item.checked) {
+                        checkedInfos.push(item)
+                    }
+                }
+                this.$emit('change', {
+                    checkedInfos: checkedInfos
+                })
+                _loading.close()
+                this.openSimple = false
+            },
+            getInfoList ($state) {
+                this.query.pageIndex++
+                _article.getArticles(this.query, 
+                    (response, total) => {
+                        this.query.total = total
+                        for (let article of response) {
+                            if (this.checkedInfos) {
+                                article.checked = this.checkedInfos.findIndex(item => item.id == article.id) != -1
+                            }
+                            this.infos.push(article)
+                        }
+                        $state.loaded()
+                        if (response == null || response.length == 0) {
+                            $state.complete()
+                        }
+                }, () => {
+                    $state.complete()
+                })
+            },
+            queryInfo () {
+                this.query.pageIndex = 0
+                this.infos = []
+                this.$refs.infiniteLoading.$emit('$InfiniteLoading:reset')
+            },
+            reset () {
+                this.query = {
+                    title: null,
+                    pageIndex: 0,
+                    pageSize: 20
+                },
+                this.infos = []
             }
         }
     }
 </script>
 
 <style scoped>
+.bottom-wapper {
+    text-align: right;
+}
+.save {
+    display: inline-block;
+    padding: 15px 40px;
+    border-radius: 30px;
+    background-color: #111;
+    color: #fff;
+}
 .content-wapper {
     width: 100%;
     height: 600px;

@@ -43,13 +43,7 @@
             <div class="item-group">
                 <ul>
                     <li>
-                        <a href="javascript:;">
-                            <img src="@/assets/cut.png">
-                            切换账号
-                        </a>
-                    </li>
-                    <li>
-                        <a href="javascript:;">
+                        <a href="javascript:;" @click="loginOut">
                             <img src="@/assets/out.png">
                             退出登录
                         </a>
@@ -64,8 +58,14 @@
 </template>
 
 <script>
+    import _cookies from 'js-cookie' 
     export default {
-
+        methods: {
+            loginOut () {
+                _cookies.remove('enterprise-login-token')
+                window.location.href = '/login'
+            }
+        }
     }
 </script>
 

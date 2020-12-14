@@ -9,118 +9,165 @@
         </div>
         <div class="column-wapper">
             <ul class="first">
-                <vuedraggable>
-                    <li class="top-column">
-                        <label>所有产品</label>
-                        <a href="javascript:void(0);" class="edit">编辑</a>
-                    </li>
-                    <li class="top-column">
-                        <label>房间</label>
-                    </li>
-                    <li class="top-column">
-                        <label>优惠</label>
-                    </li>
-                    <li class="top-column">
-                        <label>活动和特惠</label>
-                    </li>
-                    <li>
-                        <label>家居灵感</label>
-                    </li>
-                    <li>
-                        <label>新品</label>
-                    </li>
-                    <li>
-                        <label>客户服务</label>
-                    </li>
-                    <li>
-                        <label>联系我们</label>
+                <vuedraggable @change="columnsRootSort" v-model="columnsRoot">
+                    <li class="top-column" v-for="item in columnsRoot" :key="item.id">
+                        <label @click="getColumnByParent('columnsSecond', item)">{{item.name}}</label>
+                        <a href="javascript:void(0);" class="edit" @click="edit(item.id)">编辑</a>
                     </li>
                 </vuedraggable>
                 <li>
-                    <a href="javascript:vpid(0);">+新增栏目</a>
+                    <a href="javascript:vpid(0);" @click="addColumn(null)">+新增栏目</a>
                 </li>
             </ul>
-            <ul class="next">
-                <li class="titile">
-                    <label>所有产品</label>
+            <ul class="next" v-if="columnRootCurr">
+                <li class="title" >
+                    <label>{{columnRootCurr.name}}</label>
                 </li>
-                <vuedraggable>
-                    <li>
-                        <label>房间</label>
-                        <a href="javascript:void(0);" class="edit">编辑</a>
-                    </li>
-                    <li>
-                        <label>优惠</label>
-                    </li>
-                    <li>
-                        <label>活动和特惠</label>
-                    </li>
-                    <li>
-                        <label>家居灵感</label>
-                    </li>
-                    <li>
-                        <label>新品</label>
-                    </li>
-                    <li>
-                        <label>客户服务</label>
-                    </li>
-                    <li>
-                        <label>联系我们</label>
+                <vuedraggable @change="columnsSecondSort" v-model="columnsSecond">
+                    <li class="top-column" v-for="item in columnsSecond" :key="item.id">
+                        <label @click="getColumnByParent('columnsThird', item)">{{item.name}}</label>
+                        <a href="javascript:void(0);" class="edit" @click="edit(item.id)">编辑</a>
                     </li>
                 </vuedraggable>
                 <li>
-                    <a href="javascript:vpid(0);">+新增栏目</a>
+                    <a href="javascript:void(0);" @click="addColumn(columnRootCurr.id)">+新增栏目</a>
                 </li>
             </ul>
-            <ul class="next">
-                <li class="titile">
-                    <label>房间</label>
+            <ul class="next" v-if="columnSecondCurr">
+                <li class="title" >
+                    <label>{{columnSecondCurr.name}}</label>
                 </li>
-                <vuedraggable>
-                    <li>
-                        <label>优惠</label>
-                    </li>
-                    <li>
-                        <label>活动和特惠</label>
-                    </li>
-                    <li>
-                        <label>家居灵感</label>
-                    </li>
-                    <li>
-                        <label>新品</label>
-                    </li>
-                    <li>
-                        <label>客户服务</label>
-                    </li>
-                    <li>
-                        <label>联系我们</label>
+                <vuedraggable @change="columnsThirdSort" v-model="columnsThird">
+                    <li class="top-column" v-for="item in columnsThird" :key="item.id">
+                        <label>{{item.name}}</label>
+                        <a href="javascript:void(0);" class="edit" @click="edit(item.id)">编辑</a>
                     </li>
                 </vuedraggable>
                 <li>
-                    <a href="javascript:vpid(0);" @click="add">+新增栏目</a>
+                    <a href="javascript:vpid(0);" @click="addColumn(columnSecondCurr.id)">+新增栏目</a>
                 </li>
             </ul>
         </div>
-        <a href="javascript:void(0);" class="save">保存并刷新</a>
+        <!-- 添加栏目 -->
+        <addColumn ref="addColumn" @refresh="refresh"></addColumn>
     </div>
 </template>
 
 <script>
     import vuedraggable from 'vuedraggable'
+    import _column from '@/service/column-service'
+    import addColumn from '@/views/column/add-column'
     export default {
         components: {
-            vuedraggable
+            vuedraggable,
+            addColumn
         },
         data() {
             return {
-                
+                columnsRoot: null,
+                columnRootCurr: null,
+                columnsSecond: null,
+                columnSecondCurr: null,
+                columnsThird: null
             }
         },
+        mounted () {
+            let _loading = this.$loading({ fullscreen: true })
+            _column.getColumnRoot(response => {
+                _loading.close()
+                this.columnsRoot = response
+            }, response => {
+                _loading.close()
+                this.$toast.error(response)
+            })
+        },
         methods: {
-            add () {
+            edit (columnId) {
                 this.$router.push({
-                    name: '/add-column'
+                    name: '/edit-column',
+                    query: {
+                        columnId: columnId
+                    }
                 })
+            },
+            columnsRootSort (event) {
+                let _loading = this.$loading({ fullscreen: true })
+                var params = {
+                    columnId: this.columnsRoot[event.moved.newIndex].id,
+                    index: event.moved.newIndex
+                }
+                _column.updateSort(params, () => {
+                    this.$toast.success('修改成功') 
+                    _loading.close()
+                }, response => {
+                    _loading.close()
+                    this.$toast.success(response) 
+                })
+            },
+            columnsSecondSort (event) {
+                let _loading = this.$loading({ fullscreen: true })
+                var params = {
+                    columnId: this.columnsSecond[event.moved.newIndex].id,
+                    index: event.moved.newIndex
+                }
+                _column.updateSort(params, () => {
+                    this.$toast.success('修改成功') 
+                    _loading.close()
+                }, response => {
+                    _loading.close()
+                    this.$toast.success(response) 
+                })
+            },
+            columnsThirdSort (event) {
+                let _loading = this.$loading({ fullscreen: true })
+                var params = {
+                    columnId: this.columnsThird[event.moved.newIndex].id,
+                    index: event.moved.newIndex
+                }
+                _column.updateSort(params, () => {
+                    this.$toast.success('修改成功') 
+                    _loading.close()
+                }, response => {
+                    _loading.close()
+                    this.$toast.success(response) 
+                })
+            },
+            getColumnByParent (field, item) {
+                let _loading = this.$loading({ fullscreen: true })
+                _column.getColumnByParent(item.id, response => {
+                    if (field == 'columnsSecond') {
+                        this.columnRootCurr = item
+                        if (response.length > 0) {
+                            this.columnSecondCurr = response[0]
+                        } else {
+                            this.columnSecondCurr = null
+                        }
+                    }
+                    if (field == 'columnsThird') {
+                        this.columnSecondCurr = item
+                    }
+                    this[field] = response
+                    _loading.close()
+                }, response => {
+                    _loading.close()
+                    this.$toast.error(response)
+                })
+            },
+            addColumn (parentId) {
+                this.$refs.addColumn.show(parentId)
+            },
+            refresh () {
+                _column.getColumnRoot(response => {
+                    this.columnsRoot = response
+                }, response => {
+                    this.$toast.error(response)
+                })
+                if (this.columnRootCurr) {
+                    this.getColumnByParent('columnsSecond', this.columnRootCurr)
+                }
+                if (this.columnSecondCurr) {
+                    this.getColumnByParent('columnsThird', this.columnSecondCurr)
+                }
             }
         }
     }
@@ -131,16 +178,6 @@
     width: 100%;
     height: 100%;
     padding: 15px;
-}
-.save {
-    display: inline-block;
-    padding: 15px 40px;
-    border-radius: 30px;
-    background-color: #111;
-    color: #fff;
-    position: fixed;
-    bottom: 30px;
-    right: 15px;
 }
 .tips {
     color: #111;
@@ -208,11 +245,11 @@
 .column-wapper .next li {
     margin-bottom: 10px;
 }
-.column-wapper .next .titile label {
+.column-wapper .next .title label {
     font-size: 24px;
     font-weight: 700;
 }
-.column-wapper .next .titile label:hover {
+.column-wapper .next .title label:hover {
     text-decoration: none;
     cursor: text;
 }

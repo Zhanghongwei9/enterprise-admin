@@ -1,33 +1,57 @@
 <template>
-    <quillEditor v-model="intro" ref="editor" :options="toolbar"></quillEditor>
+    <quillEditor v-bind:content="value" ref="editor" :options="toolbar" 
+        v-on:change="$emit('change', $event.html)"></quillEditor>
 </template>
 
 <script>
-    import {quillEditor} from 'vue-quill-editor'
+    import {quillEditor, Quill} from 'vue-quill-editor'
+    import {ImageExtend} from 'quill-image-extend-module'
+    import {quillRedefine} from 'vue-quill-editor-upload'
     import 'quill/dist/quill.core.css'
     import 'quill/dist/quill.snow.css'
     import 'quill/dist/quill.bubble.css'
+    import _request from '@/utils/request'
     export default {
         name: 'my-editor',
         components: {
             quillEditor
         },
+        model: {
+            props: 'value',
+            event: 'change'
+        },
         props: {
-            intro: String
+            value: String
+        },
+        created () {
+            this.toolbar = quillRedefine({
+                // 图片上传的设置
+                uploadConfig: {
+                    loading: true,
+                    name: 'file',
+                    accept: 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon',
+                    // header: xhr => {
+                    //     // 上传图片请求需要携带token的 在xhr.setRequestHeader中设置
+                    //     xhr.setRequestHeader(
+                    //         "staff_center_login_key", _cookies.get('staff_center_login_key')
+                    //     )
+                    // },
+                    action: _request.getServiceUrl("/file/uploadImage"),  // 必填参数 图片上传地址
+                    res: (respnse) => {
+                        return respnse.data;
+                    },
+                    sizeError: () => {}, // 图片超过大小的回调
+                    start: () => {}, // 可选参数 自定义开始上传触发事件
+                    end: () => {}, // 可选参数 自定义上传结束触发的事件，无论成功或者失败
+                    error: () => {}, // 可选参数 上传失败触发的事件
+                    success: () => {}, // 可选参数  上传成功触发的事件
+                }
+            })
         },
         data() {
+            Quill.register('modules/ImageExtend', ImageExtend)
             return {
-                toolbar: {
-                    modules: {
-                        toolbar:[
-                            ['bold', 'italic', 'underline', 'strike', 'link'],
-                            ['blockquote', 'code-block'],
-                            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                            [{ 'color': [] }, { 'background': [] }],
-                            ['image', 'video']
-                        ],
-                    }
-                }
+                toolbar: null
             }
         }
     }

@@ -8,6 +8,11 @@ export default new Router({
 	mode: 'history',
 	routes: [
 		{
+			path: '/login',
+			name: '/login',
+			component: () => import('./views/user/login')
+		},
+		{
 			path: '/',
 			component: () => import('./views/main'),
 			children: [
@@ -23,9 +28,9 @@ export default new Router({
 					component: () => import('./views/column/column-list')
 				},
 				{
-					path: '/add-column',
-					name: '/add-column',
-					component: () => import('./views/column/add-column')
+					path: '/edit-column',
+					name: '/edit-column',
+					component: () => import('./views/column/edit-column')
 				},
 				// 产品管理
 				{

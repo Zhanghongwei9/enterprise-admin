@@ -6,36 +6,86 @@
         </div>
         <div class="content-wapper">
             <div class="top">
-                <input type="input" placeholder="输入关键字查询...">
-                <a href="javascript:void(0);" class="search"></a>
+                <input type="input" placeholder="输入关键字查询..." v-model="query.title">
+                <a href="javascript:void(0);" class="search" @click="queryInfo"></a>
             </div>
             <table class="list">
-                <tr>
-                    <td class="title">公司简介</td>
-                    <td>2019-04-06</td>
+                <tr v-for="item in infos" :key="item.id">
+                    <td class="title">{{item.title}}</td>
+                    <td>{{item.gmtCreate}}</td>
                     <td>
-                        <a href="javascript:void(0);">编辑</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="title">联系我们</td>
-                    <td>2019-04-06</td>
-                    <td>
-                        <a href="javascript:void(0);">编辑</a>
+                        <a href="javascript:void(0);" @click="edit(item.id)">编辑</a>
                     </td>
                 </tr>
             </table>
+            <infinite-loading @infinite="getInfoList" :distance="30" spinner="waveDots" ref="infiniteLoading">
+                <div slot="no-more">无更多内容</div>
+                <div slot="no-results">已加载完成</div>
+            </infinite-loading>
         </div>
     </div>
 </template>
 
 <script>
+    import InfiniteLoading from 'vue-infinite-loading' 
+    import _article from '@/service/article-service'
     export default {
+        components: {
+            InfiniteLoading
+        },
+        data() {
+            return {
+                query: {
+                    title: null,
+                    pageIndex: 0,
+                    pageSize: 20
+                },
+                infos: []
+            }
+        },
         methods: {
             add () {
                 this.$router.push({
                     name: '/add-article'
                 })
+            },
+            edit (articleId) {
+                this.$router.push({
+                    name: '/add-article',
+                    query: {
+                        articleId: articleId
+                    }
+                })
+            },
+            getInfoList ($state) {
+                this.query.pageIndex++
+                _article.getArticles(this.query, 
+                    (response, total) => {
+                        this.query.total = total
+                        response.forEach(item => {
+                            this.infos.push(item)
+                        })
+                        $state.loaded()
+                        if (response == null || response.length == 0) {
+                            $state.complete()
+                        }
+                }, () => {
+                    $state.complete()
+                })
+            },
+            queryInfo () {
+                this.query.pageIndex = 0
+                this.infos = []
+                this.$refs.infiniteLoading.$emit('$InfiniteLoading:reset')
+            },
+            reset () {
+                this.query = {
+                    title: null,
+                    pageIndex: 0,
+                    pageSize: 20
+                },
+                this.infos = []
+                this.$refs.infiniteLoading.$emit('$InfiniteLoading:reset')
             }
         }
     }

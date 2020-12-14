@@ -8,37 +8,19 @@ import nprogress from 'nprogress'
 
 var NODE_ENV = process.env.NODE_ENV;
 
-var staffs_center_address;
-var crm_address;
-var cards_address;
+var service_address;
 var domain;
-var doc_address;
-var passport_address;
 
 // eslint-disable-next-line no-console
 console.info(NODE_ENV)
 
 if (NODE_ENV == "production") {
-    staffs_center_address = 'http://api.juyoufuli.com/staffs'
-    crm_address = 'http://api.juyoufuli.com/crm'
-    cards_address = 'http://api.juyoufuli.com/cards'
     domain = 'juyoufuli.com'
-    doc_address = 'http://api.juyoufuli.com/docs'
-    passport_address = 'http://passport-admin.juyoufuli.com'
 } else if (NODE_ENV == "test") {
-    staffs_center_address = 'http://api.tech.com/staffs'
-    crm_address = 'http://api.tech.com/crm'
-    cards_address = 'http://api.tech.com/cards'
     domain = 'tech.com'
-    doc_address = 'http://api.tech.com/docs'
-    passport_address = 'http://passport-admin.tech.com'
 } else {
-    staffs_center_address = 'http://api.tech.com/staffs'
-    crm_address = 'http://api.tech.com/crm'
-    cards_address = 'http://api.tech.com/cards'
-    domain = '192.168.10.54'
-    doc_address = 'http://api.tech.com/docs'
-    passport_address = 'http://192.168.10.54:7085'
+    service_address = 'http://192.168.10.25:8080'
+    domain = '192.168.10.25'
 }
 
 var _request = {
@@ -54,21 +36,16 @@ var _request = {
                 return qs.stringify(params, {arrayFormat: 'repeat'})
             },
             headers: {
-                "staff_center_login_key": _cookies.get('staff_center_login_key') || '',
-                "project_platform": 4 // 
+                "enterprise-login-token": _cookies.get('enterprise-login-token') || ''
             }
         },
         {
             timeout: 1000 * 60 * 5
         }).then(function (response) {
             nprogress.done()
-            if (-600000 === response.data.code) {
+            if (-600001 === response.data.code) {
                 // 去登陆
-                window.location.replace(passport_address + '/login')
-            } else if (-600002 === response.data.code) {
-                router.push({
-                    path: '/notPower'
-                })
+                window.location.href = '/login'
             } else if (0 === response.data.code) {
                 // 返回结果
                 if (null != response.data.total) {
@@ -96,7 +73,7 @@ var _request = {
         var configs = {
             headers: {
                 'Content-Type'  : 'multipart/form-data',
-                "staff_center_login_key": _cookies.get('staff_center_login_key') || ''
+                "enterprise-login-token": _cookies.get('enterprise-login-token') || ''
             }
         }
         // 添加请求头
@@ -104,7 +81,7 @@ var _request = {
         axios.post(param.url, formData, configs)
         .then(response => {
             nprogress.done()
-            if (-600000 === response.data.code) {
+            if (-600001 === response.data.code) {
                 // 去登陆
                 window.location.href = '/login'
             }
@@ -119,21 +96,11 @@ var _request = {
         })
     },
     // 获取服务器地址
-    getStaffsUrl (path) {
-        return staffs_center_address + path;
-    },
-    getCrmUrl (path) {
-        return crm_address + path;
-    },
-    getCardsUrl (path) {
-        return cards_address + path;
-    },
-    getDocUrl (path) {
-        return doc_address + path;
+    getServiceUrl (path) {
+        return service_address + path;
     },
     // 主域名
-    domain,
-    passport_address
+    domain
 }
 
 export default _request

@@ -6,78 +6,77 @@
         </div>
         <div class="query-wapper">
             <div class="top">
-                <input type="input" placeholder="输入关键字查询...">
-                <a href="javascript:void(0);" class="search"></a>
+                <input type="input" placeholder="输入关键字查询..." v-model="query.name">
+                <a href="javascript:void(0);" class="search" @click="queryInfo"></a>
             </div>
             <ul class="list">
-                <li class="list-item">
+                <li class="list-item" v-for="item in infos" :key="item.id">
                     <div class="image">
-                        <img src="" alt="">
+                        <img :src="item.mainImage">
                     </div>
-                    <div class="info">
-                        <label>KUNGSFORS 康福斯</label>
-                        <span>5钩挂杆/1容器, 不锈钢40 厘米</span>
+                    <div class="info" @click="getDetail(item.id)">
+                        <label>{{item.name}}</label>
+                        <span>{{item.briefly}}</span>
                     </div>
                     <div class="operator">
-                        <a href="javascript:void(0);" class="edit"></a>
-                        <a href="javascript:void(0);" class="remove"></a>
-                    </div>
-                </li>
-                <li class="list-item">
-                    <div class="image">
-                        <img src="" alt="">
-                    </div>
-                    <div class="info">
-                        <label>KUNGSFORS 康福斯</label>
-                        <span>5钩挂杆/1容器, 不锈钢40 厘米</span>
-                    </div>
-                    <div class="operator">
-                        <a href="javascript:void(0);" class="edit"></a>
+                        <a href="javascript:void(0);" class="edit" @click="edit(item.id)"></a>
                         <a href="javascript:void(0);" class="remove"></a>
                     </div>
                 </li>
             </ul>
+            <infinite-loading @infinite="getInfoList" :distance="30" spinner="waveDots" ref="infiniteLoading">
+                <div slot="no-more">无更多内容</div>
+                <div slot="no-results">已加载完成</div>
+            </infinite-loading>
         </div>
-        <div class="product-wapper">
-            <!-- 基础信息 -->
-            <div class="top">
-                <img src="https://www.ikea.cn/cn/zh/images/products/kungsfors-kang-fu-si-5gou-gua-gan-1rong-qi-bu-xiu-gang__0755315_PE748361_S5.JPG">
-                <ul class="info">
-                    <li>
-                       <label class="name">KUNGSFORS 康福斯</label>
-                       <div class="price-wapper">
-                            <span class="price">2,800</span>
-                            <span class="price original-price">￥2,800</span>
-                       </div>
-                    </li>
-                    <li>
-                        <div class="specs">
-                            一桌四椅, 深褐色/欧斯塔 淡灰色120/180 厘米
-                            2020年08月13日2021年07月31日售完即止。
-                        </div>
-                    </li>
-                </ul>
-            </div>
+        <div class="product-wapper" v-if="info">
             <!-- 图集 -->
             <div class="images">
                 <ul>
-                    <li class="image">图片</li>
-                    <li class="image">图片</li>
+                    <template v-for="(item, index) in info.images">
+                        <li class="image" :key="index">
+                            <img :src="item">
+                        </li>
+                    </template>
+                </ul>
+            </div>
+            <!-- 基础信息 -->
+            <div class="top">
+                <ul class="info">
+                    <li>
+                       <label class="name">{{info.name}}</label>
+                       <div class="price-wapper">
+                            <span class="price">{{info.price / 100}}</span>
+                            <span class="price original-price" v-if="info.originalPrice">￥{{info.originalPrice / 100}}</span>
+                       </div>
+                    </li>
+                    <li>
+                        <div class="specs">{{info.briefly}}</div>
+                    </li>
                 </ul>
             </div>
             <!-- 详情内容 -->
-            <div class="detail" v-html="info.detail"></div>
+            <div class="detail" v-html="info.content"></div>
         </div>
     </div>
 </template>
 
 <script>
+    import InfiniteLoading from 'vue-infinite-loading' 
+    import _product from '@/service/product-service'
     export default {
+        components: {
+            InfiniteLoading
+        },
         data() {
             return {
-                info: {
-                    detail: '<img src="https://www.ikea.cn/cn/zh/images/products/kungsfors-kang-fu-si-5gou-gua-gan-1rong-qi-bu-xiu-gang__0755315_PE748361_S5.JPG">'
-                }
+                query: {
+                    name: null,
+                    pageIndex: 0,
+                    pageSize: 20
+                },
+                infos: [],
+                info: null
             }
         },
         methods: {
@@ -85,6 +84,52 @@
                 this.$router.push({
                     name: '/add-product'
                 })
+            },
+            edit (productId) {
+                this.$router.push({
+                    name: '/add-product',
+                    query: {
+                        productId: productId
+                    }
+                })
+            },
+            getDetail (productId) {
+                _product.getProductDetail(productId, response => {
+                    this.info = response
+                })
+            },
+            getInfoList ($state) {
+                this.query.pageIndex++
+                _product.getProductsPage(this.query, 
+                    (response, total) => {
+                        this.query.total = total
+                        response.forEach(item => {
+                            this.infos.push(item)
+                        })
+                        $state.loaded()
+                        if (response == null || response.length == 0) {
+                            $state.complete()
+                        }
+                        if (response.length > 0) {
+                            this.getDetail(response[0].id)
+                        }
+                }, () => {
+                    $state.complete()
+                })
+            },
+            queryInfo () {
+                this.query.pageIndex = 0
+                this.infos = []
+                this.$refs.infiniteLoading.$emit('$InfiniteLoading:reset')
+            },
+            reset () {
+                this.query = {
+                    name: null,
+                    pageIndex: 0,
+                    pageSize: 20
+                },
+                this.infos = []
+                this.$refs.infiniteLoading.$emit('$InfiniteLoading:reset')
             }
         }
     }
@@ -139,7 +184,7 @@
 .query-wapper {
     display: inline-block;
     vertical-align: top;
-    width: 400px;
+    width: 450px;
     height: calc(100% - 60px);
 }
 .query-wapper .top {
@@ -193,10 +238,16 @@
     border-radius: 50%;
     background-color: #fff;
 }
+.query-wapper .list .list-item .image img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 .query-wapper .list .list-item .info{
     display: inline-block;
     vertical-align: top;
-    width: 220px;
+    width: 270px;
     padding: 0 15px;
 }
 .query-wapper .list .list-item .info label,span {
@@ -260,7 +311,7 @@
 }
 .product-wapper{
     display: inline-block;
-    width: calc(100% - 430px);
+    width: calc(100% - 480px);
     height: calc(100% - 60px);
     margin-left: 30px;
     vertical-align: top;
@@ -271,17 +322,10 @@
     background: #fff;
     margin-bottom: 15px;
 }
-.product-wapper .top img{
-    width: 320px;
-    height: 320px;
-    display: inline-block;
-    vertical-align: top;
-    object-fit: cover;
-}
 .product-wapper .info {
     display: inline-block;
-    width: calc(100% - 320px);
-    height: 320px;
+    width: 100%;
+    position: relative;
 }
 .product-wapper .info li {
     display: block;
@@ -291,7 +335,7 @@
     display: inline-block;
     font-size: 22px;
     font-weight: 700;
-    width: 290px;
+    width: 480px;
     vertical-align: top;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -302,9 +346,11 @@
     vertical-align: top;
     padding-left: 10px;
     text-align: right;
+    position: absolute;
+    right: 15px;
 }
 .product-wapper .info li .price {
-    display: block;
+    display: inline-block;
     font-size: 18px;
     font-weight: 700;
     position: relative;
@@ -318,6 +364,7 @@
     top: 2px;
 }
 .product-wapper .info li .original-price {
+    display: block;
     font-size: 14px;
     font-weight: normal;
     color: #484848;
@@ -332,26 +379,31 @@
     color: #484848;
 }
 .product-wapper .images {
-    padding: 15px;
     background-color: #fff;
     margin-bottom: 15px;
 }
 .product-wapper .images li {
     display: inline-block;
-    width: 100px;
-    height: 100px;
-    line-height: 100px;
-    text-align: center;
-    vertical-align: middle;
+    width: 320px;
+    height: 320px;
     margin-right: 15px;
-    background-color: #f3f4fb;
+    margin-bottom: 15px;
+}
+.product-wapper .images li img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 .product-wapper .detail {
     background-color: #fff;
     margin-bottom: 180px;
     width: 100%;
+    padding: 15px;
 }
 .product-wapper .detail>>>img {
     width: 100%;
+}
+.product-wapper .detail>>>p,span {
+    line-height: 19px;
 }
 </style>
