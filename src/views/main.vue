@@ -106,7 +106,6 @@
 .item-group li {
     display: block;
     width: 100%;
-    padding-left: 40px;
     position: relative;
 }
 .item-group:first-child {
@@ -123,5 +122,8 @@
     height: calc(100% - 60px);
     display: inline-block;
     vertical-align: top;
+}
+.router-link-active {
+   color: #ff4081 !important;
 }
 </style>
