@@ -80,9 +80,13 @@
                     </template>
                 </div>
             </mu-form>
-            <a href="javascript:void(0);" class="remove" @click="removeColumn">删除栏目</a>
+            <a href="javascript:void(0);" class="save" @click="save">保存</a>
+            <div class="bottom-wapper">
+                <label>删除此栏目</label>
+                <span>一旦删除，将删除此栏目以及此栏目一下所有栏目以及关联信息。请确认</span>
+                <a href="javascript:void(0);" class="remove" @click="removeColumn">删除栏目</a>
+            </div>
         </div>
-        <a href="javascript:void(0);" class="save" @click="save">保存</a>
         <!-- 添加产品 -->
         <selectProducts ref="selectProducts" @change="productChange"></selectProducts>
         <!-- 关联活动 -->
@@ -214,24 +218,16 @@
     width: 100%;
     overflow-y: auto;
 }
-.remove {
-    width: 100%;
+
+.save {
+    padding: 0 30px;
     height: 48px;
     line-height: 48px;
     display: block;
-    background: #f44336;
+    background: #111;
     color: #fff;
     text-align: center;
-}
-.save {
-    display: inline-block;
-    padding: 15px 40px;
-    border-radius: 30px;
-    background-color: #111;
-    color: #fff;
-    position: fixed;
-    bottom: 30px;
-    right: 15px;
+    margin-bottom: 60px;
 }
 .join {
     display: inline-block;
@@ -371,5 +367,29 @@
 }
 .content-wapper .list .title:hover {
     text-decoration: underline;
+}
+.bottom-wapper {
+    padding: 30px 15px;
+    position: relative;
+    border: 1px solid #dfdfdf;
+}
+.bottom-wapper span, label {
+    display: block;
+}
+.bottom-wapper label {
+    font-size: 16px;
+    font-weight: 500;
+}
+.remove {
+    padding: 0 30px;
+    height: 48px;
+    line-height: 48px;
+    display: inline-block;
+    background: #f44336;
+    color: #fff;
+    text-align: center;
+    position: absolute;
+    right: 15px;
+    top: 30px;
 }
 </style>

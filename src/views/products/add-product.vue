@@ -199,7 +199,7 @@
                         _loading.close()
                         this.$toast.success('保存成功')
                         this.$router.push({
-                            name: '/product-list'
+                            name: '/products-list'
                         })
                     }, response => {
                         _loading.close()

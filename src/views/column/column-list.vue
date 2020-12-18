@@ -19,20 +19,30 @@
                     <a href="javascript:vpid(0);" @click="addColumn(null)">+新增栏目</a>
                 </li>
             </ul>
-            <ul class="next" v-if="columnRootCurr">
-                <li class="title" >
-                    <label>{{columnRootCurr.name}}</label>
-                </li>
-                <vuedraggable @change="columnsSecondSort" v-model="columnsSecond">
-                    <li class="top-column" v-for="item in columnsSecond" :key="item.id">
-                        <label @click="getColumnByParent('columnsThird', item)">{{item.name}}</label>
-                        <a href="javascript:void(0);" class="edit" @click="edit(item.id)">编辑</a>
+            <template v-if="columnRootCurr && columnRootCurr.category == 1">
+                <ul class="next">
+                    <li class="title" >
+                        <label>{{columnRootCurr.name}}</label>
                     </li>
-                </vuedraggable>
-                <li>
-                    <a href="javascript:void(0);" @click="addColumn(columnRootCurr.id)">+新增栏目</a>
-                </li>
-            </ul>
+                    <vuedraggable @change="columnsSecondSort" v-model="columnsSecond">
+                        <li class="top-column" v-for="item in columnsSecond" :key="item.id">
+                            <label @click="getColumnByParent('columnsThird', item)">{{item.name}}</label>
+                            <a href="javascript:void(0);" class="edit" @click="edit(item.id)">编辑</a>
+                        </li>
+                    </vuedraggable>
+                    <li>
+                        <a href="javascript:void(0);" @click="addColumn(columnRootCurr.id)">+新增栏目</a>
+                    </li>
+                </ul>
+            </template>
+            <template v-else-if="columnRootCurr && columnRootCurr.category != 1">
+                <div class="tips contet-tips">
+                    <label>当前选择栏目不支持继续添加子栏目</label>
+                    <span>
+                        点击编辑，继续关联设置其他关联信息
+                    </span>
+                </div>
+            </template>
             <ul class="next" v-if="columnSecondCurr">
                 <li class="title" >
                     <label>{{columnSecondCurr.name}}</label>
@@ -137,14 +147,13 @@
                 _column.getColumnByParent(item.id, response => {
                     if (field == 'columnsSecond') {
                         this.columnRootCurr = item
-                        if (response.length > 0) {
-                            this.columnSecondCurr = response[0]
-                        } else {
-                            this.columnSecondCurr = null
-                        }
+                        this.columnsSecond = null
+                        this.columnsThird = null
+                        this.columnSecondCurr = null
                     }
                     if (field == 'columnsThird') {
                         this.columnSecondCurr = item
+                        this.columnsThird = null
                     }
                     this[field] = response
                     _loading.close()
@@ -188,6 +197,10 @@
     font-size: 18px;
     display: block;
     margin-bottom: 15px;
+}
+.contet-tips {
+    display: inline-block;
+    padding-top: 0;
 }
 .column-wapper {
     display: inline-block;

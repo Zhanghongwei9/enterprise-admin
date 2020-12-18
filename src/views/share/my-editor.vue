@@ -11,6 +11,7 @@
     import 'quill/dist/quill.snow.css'
     import 'quill/dist/quill.bubble.css'
     import _request from '@/utils/request'
+    import _cookies from 'js-cookie' 
     export default {
         name: 'my-editor',
         components: {
@@ -30,12 +31,12 @@
                     loading: true,
                     name: 'file',
                     accept: 'image/png, image/gif, image/jpeg, image/bmp, image/x-icon',
-                    // header: xhr => {
-                    //     // 上传图片请求需要携带token的 在xhr.setRequestHeader中设置
-                    //     xhr.setRequestHeader(
-                    //         "staff_center_login_key", _cookies.get('staff_center_login_key')
-                    //     )
-                    // },
+                    header: xhr => {
+                        // 上传图片请求需要携带token的 在xhr.setRequestHeader中设置
+                        xhr.setRequestHeader(
+                            "enterprise-login-token", _cookies.get('enterprise-login-token') || ''
+                        )
+                    },
                     action: _request.getServiceUrl("/file/uploadImage"),  // 必填参数 图片上传地址
                     res: (respnse) => {
                         return respnse.data;

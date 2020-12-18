@@ -213,6 +213,11 @@
     left: 9px;
     cursor: pointer;
 }
+.query-wapper .list {
+    display: block;
+    height: calc(100% - 60px);
+    overflow-y: auto;
+}
 .query-wapper .list .list-item{
     width: 100%;
     background-color: #f3f4fb;

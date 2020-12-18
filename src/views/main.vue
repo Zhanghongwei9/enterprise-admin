@@ -2,6 +2,7 @@
     <div class="wapper">
         <div class="top-wapper">
             <div>
+                <img src="@/assets/logo.png" alt="logo">
                 <label>企业管理后台</label>
             </div>
         </div>
@@ -80,6 +81,11 @@
     line-height: 60px;
     vertical-align: middle;
     box-shadow: inset 0px -1px 0px #e1e2e2;
+}
+.top-wapper img {
+    margin-right: 10px;
+    display: inline-block;
+    width: 25px;
 }
 .menu-wapper {
     width: 260px;

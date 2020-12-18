@@ -10,11 +10,11 @@
                 <a href="javascript:void(0);" class="search" @click="queryInfo"></a>
             </div>
             <ul class="list">
-                <li class="list-item" v-for="item in infos" :key="item.id">
+                <li class="list-item" v-for="item in infos" :key="item.id" @click="getDetail(item.id)">
                     <div class="image">
                         <img :src="item.mainImage">
                     </div>
-                    <div class="info" @click="getDetail(item.id)">
+                    <div class="info">
                         <label>{{item.name}}</label>
                         <span>{{item.briefly}}</span>
                     </div>
@@ -23,11 +23,11 @@
                         <a href="javascript:void(0);" class="remove"></a>
                     </div>
                 </li>
+                <infinite-loading @infinite="getInfoList" :distance="30" spinner="waveDots" ref="infiniteLoading">
+                    <div slot="no-more">无更多内容</div>
+                    <div slot="no-results">已加载完成</div>
+                </infinite-loading>
             </ul>
-            <infinite-loading @infinite="getInfoList" :distance="30" spinner="waveDots" ref="infiniteLoading">
-                <div slot="no-more">无更多内容</div>
-                <div slot="no-results">已加载完成</div>
-            </infinite-loading>
         </div>
         <div class="product-wapper" v-if="info">
             <!-- 图集 -->
@@ -221,6 +221,11 @@
     top: 9px;
     left: 9px;
     cursor: pointer;
+}
+.query-wapper .list {
+    display: block;
+    height: calc(100% - 60px);
+    overflow-y: auto;
 }
 .query-wapper .list .list-item{
     width: 100%;
