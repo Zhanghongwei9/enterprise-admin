@@ -12,6 +12,14 @@
                 <mu-form-item prop="name" label="活动名称" :rules="rules.name">
                     <mu-text-field v-model="info.name" :max-length="128"></mu-text-field>
                 </mu-form-item>
+                <mu-form-item prop="mainImage" label="活动主图">
+                    <img class="mainImage" :src="info.mainImage" v-if="info.mainImage">
+                    <div class="upload-img">
+                        <img src="@/assets/up-load.png">
+                        请上传活动主图。支持格式png/jpeg/jpg
+                        <input type="file" @change="uploadImage($event, 'logoAddress')" accept="image/jpeg,image/png,image/jpg">
+                    </div>
+                </mu-form-item>
                 <ul class="floor-wapper">
                     <li class="floor-item" v-for="(item, index) in info.activityFloorVos" :key="index">
                         <div class="title">
@@ -21,6 +29,7 @@
                             <mu-form-item prop="category" label="类别">
                                 <mu-radio v-model="item.category" :value="1" label="图文"></mu-radio>
                                 <mu-radio v-model="item.category" :value="2" label="产品"></mu-radio>
+                                <mu-radio v-model="item.category" :value="3" label="文章"></mu-radio>
                             </mu-form-item>
                             <template v-if="item.category == 1">
                                 <div class="tips">
@@ -60,6 +69,26 @@
                                     </ul>
                                 </mu-form-item>
                             </template>
+                            <template v-if="item.category == 3">
+                                <div class="tips">
+                                    <label>关联文章</label>
+                                    <span>
+                                        只关联一篇文章的话，用户端会直接跳转<br>
+                                        可拖动排序
+                                    </span>
+                                </div>
+                                <mu-form-item prop="input" label="关联文章">
+                                    <a href="javascript:void(0);" class="join" @click="selectArticle(index, item.articles)">关联文章</a>
+                                    <div class="info-wapper">
+                                        <vuedraggable v-model="item.articles">
+                                            <span v-for="(article, articleIndex) in item.articles" :key="'article-' + article.id">
+                                                {{article.title}}
+                                                <a href="javascript:void(0);" @click="removeArticle(index, articleIndex)">删除此项</a>
+                                            </span>
+                                        </vuedraggable>
+                                    </div>
+                                </mu-form-item>
+                            </template>
                         </div>
                     </li>
                 </ul>
@@ -69,16 +98,21 @@
         <a href="javascript:void(0);" class="save" @click="save">保存</a>
         <!-- 添加产品 -->
         <selectProducts ref="selectProducts" @change="productChange"></selectProducts>
+        <!-- 关联文章 -->
+        <selectArticle ref="selectArticle" @change="articleChange"></selectArticle>
     </div>
 </template>
 
 <script>
     import vuedraggable from 'vuedraggable'
     import selectProducts from '@/views/share/select-products'
+    import selectArticle from '@/views/share/select-article'
     import _activity from '@/service/activity-service'
+    import _file from '@/service/file-service'
     export default {
         components: {
             vuedraggable,
+            selectArticle,
             selectProducts
         },
         mounted () {
@@ -98,6 +132,7 @@
                 info: {
                     id: null,
                     name: null,
+                    mainImage: null,
                     activityFloorVos: [
                         {
                             category: 1,
@@ -110,11 +145,25 @@
                 rules: {
                     name: [
                         { validate: (val) => !!val, message: '活动名称不能为空'},
+                    ],
+                    mainImage: [
+                        { validate: (val) => !!val, message: '请上传活动主图'},
                     ]
                 }
             }
         },
         methods: {
+            uploadImage (event) {
+                let _loading = this.$loading({ fullscreen: true })
+                var file = event.target.files[0]
+                _file.uploadImage(file, response => {
+                    _loading.close()
+                    this.info.mainImage = response
+                }, response => {
+                    _loading.close()
+                    this.$toast.error(response)
+                })
+            },
             productChange (info) {
                 if (this.info.activityFloorVos[info.params].products) {
                     var currNums = this.info.activityFloorVos[info.params].products.length + 
@@ -126,8 +175,14 @@
                 }
                 this.$set(this.info.activityFloorVos[info.params], 'products', info.checkedInfos)
             },
+            articleChange (info) {
+                this.$set(this.info.activityFloorVos[info.params], 'articles', info.checkedInfos)
+            },
             removeProduct (floorIndex, productIndex) {
                 this.info.activityFloorVos[floorIndex].products.splice(productIndex, 1)
+            },
+            removeArticle(floorIndex, articleIndex) {
+                this.info.activityFloorVos[floorIndex].articles.splice(articleIndex, 1)
             },
             save () {
                 this.$refs.form.validate().then((valid) => {
@@ -141,6 +196,12 @@
                             floor.productIds = []
                             for (const item of floor.products) {
                                 floor.productIds.push(item.id)
+                            }
+                        }
+                        if (floor.articles) {
+                            floor.articleIds = []
+                            for (const item of floor.articles) {
+                                floor.articleIds.push(item.id)
                             }
                         }
                     }
@@ -158,6 +219,9 @@
             },
             selectProducts (floorIndex, checkedInfos) {
                 this.$refs.selectProducts.show(floorIndex, checkedInfos)
+            },
+            selectArticle (floorIndex, checkedInfos) {
+                this.$refs.selectArticle.show(floorIndex, checkedInfos)
             },
             addFloor () {
                 this.info.activityFloorVos.push({
@@ -322,5 +386,51 @@
     position: absolute;
     left: 0;
     top: 2px;
+}
+.upload-img {
+    width: 330px;
+    height: 60px;
+    line-height: 60px;
+    border: 2px dotted #e0e0e0;
+    border-radius: 5px;
+    font-size: 12px;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+}
+.upload-img input {
+    display: block;
+    width: 330px;
+    height: 60px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.upload-img img {
+    width: 30px;
+}
+.mainImage {
+    width: 100%;
+    margin-bottom: 15px;
+}
+.info-wapper {
+    display: block;
+    width: 100%;
+}
+.info-wapper span a{
+    position: absolute;
+    right: 10px;
+}
+.info-wapper span {
+    color: #111;
+    display: block;
+    padding: 10px;
+    width: 100%;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    margin-bottom: 15px;
 }
 </style>

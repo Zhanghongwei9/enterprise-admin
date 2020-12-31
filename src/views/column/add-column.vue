@@ -1,10 +1,18 @@
 <template>
-    <mu-dialog title="添加栏目" width="360" :open.sync="openSimple">
+    <mu-dialog title="添加栏目" width="560" :open.sync="openSimple">
          <mu-form ref="form" :model="info" class="mu-demo-form" label-position="top" label-width="100">
             <div class="content">
                 <mu-form-item prop="name" label="栏目名称" :rules="rules.name">
                     <mu-text-field v-model="info.name"></mu-text-field>
                 </mu-form-item>
+                <template v-if="info.parentId == 0">
+                    <mu-form-item prop="category" label="关联类别">
+                        <mu-radio v-model="info.category" 
+                            v-for="item in categories"
+                            :key="item.id"
+                            :value="item.id" :label="item.name"></mu-radio>
+                    </mu-form-item>
+                </template>
             </div>
         </mu-form>
         <div class="bottom-wapper">
@@ -21,19 +29,27 @@
                 openSimple: false,
                 info: {
                     name: null,
+                    category: 2,
                     parentId: null
                 },
                 rules: {
                     name: [
                         { validate: (val) => !!val, message: '栏目名称不能为空'},
                     ]
-                }
+                },
+                categories: null
             }
+        },
+        mounted () {
+            _column.getCategories(response => {
+                this.categories = response
+            })
         },
         methods: {
             show (parentId) {
                 this.info = {
                     name: null,
+                    category: 2,
                     parentId: parentId ? parentId : 0
                 }
                 this.openSimple = true

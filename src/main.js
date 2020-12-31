@@ -8,7 +8,10 @@ import '@/assets/reset.css'
 import '@/plugins/muse-ui'
 
 // 权限控制
-import './utils/authority-control'
+// import './utils/authority-control'
+
+// 查询参数存储
+import './utils/params-control'
 
 Vue.config.productionTip = false
 
@@ -30,7 +33,9 @@ Vue.filter('dateformat', function(dataStr, pattern = 'YYYY MM DD') {
 
 // 自定义组件
 import myEditor from '@/views/share/my-editor'
+import myBack from '@/views/share/back'
 Vue.component('my-editor', myEditor)
+Vue.component('my-back', myBack)
 
 new Vue({
   router,

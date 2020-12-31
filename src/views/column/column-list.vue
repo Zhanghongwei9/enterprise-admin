@@ -19,10 +19,10 @@
                     <a href="javascript:vpid(0);" @click="addColumn(null)">+新增栏目</a>
                 </li>
             </ul>
-            <template v-if="columnRootCurr && columnRootCurr.category == 1">
+            <template v-if="checked.columnRootCurr">
                 <ul class="next">
                     <li class="title" >
-                        <label>{{columnRootCurr.name}}</label>
+                        <label>{{checked.columnRootCurr.name}}</label>
                     </li>
                     <vuedraggable @change="columnsSecondSort" v-model="columnsSecond">
                         <li class="top-column" v-for="item in columnsSecond" :key="item.id">
@@ -31,21 +31,21 @@
                         </li>
                     </vuedraggable>
                     <li>
-                        <a href="javascript:void(0);" @click="addColumn(columnRootCurr.id)">+新增栏目</a>
+                        <a href="javascript:void(0);" @click="addColumn(checked.columnRootCurr.id)">+新增栏目</a>
                     </li>
                 </ul>
             </template>
-            <template v-else-if="columnRootCurr && columnRootCurr.category != 1">
+            <!-- <template v-else-if="columnRootCurr && columnRootCurr.category != 1">
                 <div class="tips contet-tips">
                     <label>当前选择栏目不支持继续添加子栏目</label>
                     <span>
                         点击编辑，继续关联设置其他关联信息
                     </span>
                 </div>
-            </template>
-            <ul class="next" v-if="columnSecondCurr">
+            </template> -->
+            <ul class="next" v-if="checked.columnSecondCurr">
                 <li class="title" >
-                    <label>{{columnSecondCurr.name}}</label>
+                    <label>{{checked.columnSecondCurr.name}}</label>
                 </li>
                 <vuedraggable @change="columnsThirdSort" v-model="columnsThird">
                     <li class="top-column" v-for="item in columnsThird" :key="item.id">
@@ -54,7 +54,7 @@
                     </li>
                 </vuedraggable>
                 <li>
-                    <a href="javascript:vpid(0);" @click="addColumn(columnSecondCurr.id)">+新增栏目</a>
+                    <a href="javascript:vpid(0);" @click="addColumn(checked.columnSecondCurr.id)">+新增栏目</a>
                 </li>
             </ul>
         </div>
@@ -75,24 +75,50 @@
         data() {
             return {
                 columnsRoot: null,
-                columnRootCurr: null,
                 columnsSecond: null,
-                columnSecondCurr: null,
-                columnsThird: null
+                columnsThird: null,
+                checked: {
+                    columnRootCurr: null,
+                    columnSecondCurr: null,
+                }
             }
         },
         mounted () {
-            let _loading = this.$loading({ fullscreen: true })
-            _column.getColumnRoot(response => {
-                _loading.close()
-                this.columnsRoot = response
-            }, response => {
-                _loading.close()
-                this.$toast.error(response)
-            })
+            this.checked = this.$getParams()
+            if (!this.checked) {
+                this.checked = {
+                    columnRootCurr: null,
+                    columnSecondCurr: null,
+                }
+            }
+            this.getColumns()
         },
         methods: {
+            getColumns () {
+                _column.getColumnRoot(response => {
+                    this.columnsRoot = response
+                }, response => {
+                    this.$toast.error(response)
+                })
+                if (this.checked) {
+                    if (this.checked.columnRootCurr) {
+                        _column.getColumnByParent(this.checked.columnRootCurr.id, response => {
+                            this.columnsSecond = response
+                        }, response => {
+                            this.$toast.error(response)
+                        })
+                    }
+                    if (this.checked.columnSecondCurr) {
+                        _column.getColumnByParent(this.checked.columnSecondCurr.id, response => {
+                            this.columnsThird = response
+                        }, response => {
+                            this.$toast.error(response)
+                        })
+                    }
+                }
+            },
             edit (columnId) {
+                this.$saveParams(this.checked)
                 this.$router.push({
                     name: '/edit-column',
                     query: {
@@ -143,22 +169,19 @@
                 })
             },
             getColumnByParent (field, item) {
-                let _loading = this.$loading({ fullscreen: true })
                 _column.getColumnByParent(item.id, response => {
                     if (field == 'columnsSecond') {
-                        this.columnRootCurr = item
+                        this.checked.columnRootCurr = item
+                        this.checked.columnSecondCurr = null
                         this.columnsSecond = null
                         this.columnsThird = null
-                        this.columnSecondCurr = null
                     }
                     if (field == 'columnsThird') {
-                        this.columnSecondCurr = item
-                        this.columnsThird = null
+                        this.checked.columnSecondCurr = item
+                        this.checked.columnsThird = null
                     }
                     this[field] = response
-                    _loading.close()
                 }, response => {
-                    _loading.close()
                     this.$toast.error(response)
                 })
             },
@@ -171,11 +194,21 @@
                 }, response => {
                     this.$toast.error(response)
                 })
-                if (this.columnRootCurr) {
-                    this.getColumnByParent('columnsSecond', this.columnRootCurr)
-                }
-                if (this.columnSecondCurr) {
-                    this.getColumnByParent('columnsThird', this.columnSecondCurr)
+                if (this.checked) {
+                    if (this.checked.columnRootCurr) {
+                        _column.getColumnByParent(this.checked.columnRootCurr.id, response => {
+                            this.columnsSecond = response
+                        }, response => {
+                            this.$toast.error(response)
+                        })
+                    }
+                    if (this.checked.columnSecondCurr) {
+                        _column.getColumnByParent(this.checked.columnSecondCurr.id, response => {
+                            this.columnsThird = response
+                        }, response => {
+                            this.$toast.error(response)
+                        })
+                    }
                 }
             }
         }

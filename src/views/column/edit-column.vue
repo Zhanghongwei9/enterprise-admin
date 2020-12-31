@@ -2,6 +2,7 @@
     <div class="wapper">
         <div class="content-wapper">
             <div class="tips">
+                <my-back :to="{ path: '/column-list' }"></my-back>
                 <label>编辑栏目</label>
             </div>
             <mu-form ref="form" :model="info" class="mu-demo-form" label-position="top" label-width="100">
@@ -9,12 +10,14 @@
                     <mu-form-item prop="name" label="栏目名称" :rules="rules.name">
                         <mu-text-field v-model="info.name"></mu-text-field>
                     </mu-form-item>
-                    <mu-form-item prop="category" label="关联类别">
-                        <mu-radio v-model="info.category" 
-                            v-for="item in categories"
-                            :key="item.id"
-                            :value="item.id" :label="item.name"></mu-radio>
-                    </mu-form-item>
+                    <template  v-if="info.parentId == 0">
+                        <mu-form-item prop="category" label="关联类别">
+                            <mu-radio v-model="info.category" 
+                                v-for="item in categories"
+                                :key="item.id"
+                                :value="item.id" :label="item.name"></mu-radio>
+                        </mu-form-item>
+                    </template>
                     <template v-if="info.category == 2">
                         <div class="tips">
                             <label>关联文章</label>
@@ -263,8 +266,9 @@
 }
 .tips label {
     font-size: 18px;
-    display: block;
+    display: inline-block;
     margin-bottom: 15px;
+    vertical-align: top;
 }
 .content-wapper .info {
     display: block;

@@ -93,6 +93,7 @@
     display: inline-block;
     padding: 15px;
     border-right: 1px solid #d6dbe5;
+    padding-left: 0;
 }
 .menu-wapper .item-group {
     box-shadow: inset 0px -1px 0px #e1e2e2;
@@ -121,7 +122,7 @@
     display: inline-block;
     color: #0b1d1e;
     padding: 10px 20px;
-    padding-right: 50px;
+    padding-left: 50px;
 }
 .content-wapper {
     width: calc(100% - 260px);
@@ -130,6 +131,15 @@
     vertical-align: top;
 }
 .router-link-active {
-   color: #ff4081 !important;
+    font-weight: 500;
+}
+.router-link-active::after {
+   content: '';
+   width: 4px;
+   height: calc(100% - 14px);
+   background: #111;
+   position:absolute;
+   left: 0;
+   top: 7px;
 }
 </style>

@@ -73,12 +73,9 @@
             }
         },
         mounted () {
-            let _loading = this.$loading({ fullscreen: true })
             _baseinfo.getBaseInfo(this.info.companyCode, response => {
                 this.info = response
-                _loading.close()
             }, response => {
-                _loading.close()
                 this.$toast.error(response)
             })
         },

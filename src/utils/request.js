@@ -15,12 +15,13 @@ var domain;
 console.info(NODE_ENV)
 
 if (NODE_ENV == "production") {
-    domain = 'juyoufuli.com'
+    domain = 'enterprise.com'
 } else if (NODE_ENV == "test") {
-    domain = 'tech.com'
+    domain = 'enterprise.com'
 } else {
+    // service_address = 'http://192.168.31.44:8080'
     service_address = 'http://192.168.10.25:8080'
-    domain = '192.168.10.25'
+    domain = 'enterprise.com'
 }
 
 var _request = {
@@ -43,9 +44,14 @@ var _request = {
             timeout: 1000 * 60 * 5
         }).then(function (response) {
             nprogress.done()
+            if (response.status != 200) {
+                typeof param.error === 'function' && param.error(response.statusText)
+            }
             if (-600001 === response.data.code) {
                 // 去登陆
-                window.location.href = '/login'
+                router.push({
+                    path: '/login'
+                })
             } else if (0 === response.data.code) {
                 // 返回结果
                 if (null != response.data.total) {
@@ -83,7 +89,9 @@ var _request = {
             nprogress.done()
             if (-600001 === response.data.code) {
                 // 去登陆
-                window.location.href = '/login'
+                router.push({
+                    path: '/login'
+                })
             }
             else if (0 === response.data.code) {
                 // 常规数据

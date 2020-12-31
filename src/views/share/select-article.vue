@@ -41,12 +41,16 @@
                     pageSize: 20
                 },
                 infos: [],
+                params: null,
                 checkedInfos: null
             }
         },
         methods: {
-            show (checkedInfos) {
-                this.checkedInfos = checkedInfos
+            show (params, checkedInfos) {
+                this.params = params
+                if (checkedInfos) {
+                    this.checkedInfos = checkedInfos
+                }
                 this.openSimple = true
                 this.reset()
             },
@@ -59,7 +63,8 @@
                     }
                 }
                 this.$emit('change', {
-                    checkedInfos: checkedInfos
+                    checkedInfos: checkedInfos,
+                    params: this.params
                 })
                 _loading.close()
                 this.openSimple = false
