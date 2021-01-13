@@ -15,9 +15,11 @@ var domain;
 console.info(NODE_ENV)
 
 if (NODE_ENV == "production") {
-    domain = 'enterprise.com'
+    domain = 'tingshuolm.com'
+    service_address = 'http://api-qy.tingshuolm.com'
 } else if (NODE_ENV == "test") {
     domain = 'enterprise.com'
+    service_address = 'http://192.168.10.25:8080'
 } else {
     // service_address = 'http://192.168.31.44:8080'
     service_address = 'http://192.168.10.25:8080'
